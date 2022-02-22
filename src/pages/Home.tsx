@@ -34,7 +34,7 @@ export function Home() {
     } else {
       alert("Código inválido");
     }
-    if (verifydatabasse.val().endedAt) {
+    if (verifydatabasse.val() === null) {
       alert("Sala encerrada");
     }
   }
