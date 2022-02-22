@@ -1,14 +1,15 @@
 import logoImg from "../assets/images/Logo.svg";
 import { Buttom } from "../components/Buttom";
 import { RoomCode } from "../components/RoomCode";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import "../styles/room.scss";
-import { FormEvent, useContext, useEffect, useState } from "react";
+import { useContext,  useState } from "react";
 import { AuthContext } from "../contexts/AuthContextProvider";
-import { onValue, push, ref } from "firebase/database";
+import {  ref, remove, update } from "firebase/database";
 import { database } from "../services/Firebase";
 import { Question } from "../components/Question";
 import "../styles/question.scss";
+import deleteImg from "../assets/images/delete.svg";
 import { UseRoom } from "../hooks/useRoom";
 
 type RoomParams = {
@@ -21,29 +22,22 @@ export function AdminRoom() {
   const { id } = useParams<RoomParams>();
   const roomId = id;
   const {questions,title} = UseRoom(roomId);
+  const navigate = useNavigate(); 
 
- 
+  async function handleDeleteQuestion(questionid:string){
+      if (window.confirm("Are you sure you want to delete this question?")) {
+        const Ref = await ref(database,`rooms/${roomId}/questions/${questionid}`)
+        remove(Ref)
+      }
+  }
 
-  async function handleSendQuestion(event: FormEvent) {
-    event.preventDefault();
-    if (newquestion.trim() === "") {
-      return;
-    }
-    if (!context.user) {
-      throw new Error("User not found");
-    }
-    const question = {
-      content: newquestion,
-      author: {
-        name: context.user.name,
-        avatar: context.user.photo,
-        isHighlighted: false,
-        isAnswered: false,
-      },
-    };
-    const reference = await ref(database, `rooms/${roomId}/questions`);
-    push(reference, question);
-    newsetQuestion("");
+  async function handleEndRoom() {
+    const dataRef = await ref(database,`rooms/${roomId}`)
+    update(dataRef,{
+      endedAt: new Date(),
+    })
+
+    navigate('/');
   }
 
   return (
@@ -53,7 +47,7 @@ export function AdminRoom() {
           <img src={logoImg} alt="Logo do projeto" />
           <div>
           <RoomCode code={id} />
-          <Buttom isOutLined>Encerrar sala</Buttom>
+          <Buttom isOutLined onClick={handleEndRoom}>Encerrar sala</Buttom>
           </div>
         </div>
       </header>
@@ -68,7 +62,14 @@ export function AdminRoom() {
               key={question.id}
               content={question.content}
               author={question.author}
-            />
+            >
+                <button
+                type="button"
+                onClick={() => handleDeleteQuestion(question.id)}
+                >
+                    <img src={deleteImg} alt="Deletar pergunta" />
+                </button>
+            </Question>
           ))}  
         </div>
       </main>

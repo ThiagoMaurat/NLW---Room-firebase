@@ -5,20 +5,19 @@ import googleicon from "../assets/images/google-icon.svg";
 import "../styles/auth.scss";
 import { Buttom } from "../components/Buttom";
 import { useNavigate } from "react-router-dom";
-import { AuthContext} from "../contexts/AuthContextProvider";
+import { AuthContext } from "../contexts/AuthContextProvider";
 import { database } from "../services/Firebase";
 import { get, ref } from "firebase/database";
 
 export function Home() {
   const navigate = useNavigate();
-  const {signInWithGoogle,user} = useContext(AuthContext);
-  const [roomcode, setroomcode] = useState('');
-  
-  
+  const { signInWithGoogle, user } = useContext(AuthContext);
+  const [roomcode, setroomcode] = useState("");
+
   async function handleCreateRoom() {
     if (!user) {
       await signInWithGoogle();
-    } 
+    }
     navigate("/rooms/new");
   }
 
@@ -29,11 +28,14 @@ export function Home() {
       return;
     }
     const roomref = await ref(database, `rooms/${roomcode}`);
-    const verifydatabasse = await get(roomref)
-    if(verifydatabasse.exists()){
+    const verifydatabasse = await get(roomref);
+    if (verifydatabasse.exists()) {
       navigate(`/rooms/${roomcode}`);
     } else {
       alert("Código inválido");
+    }
+    if (verifydatabasse.val().endedAt) {
+      alert("Sala encerrada");
     }
   }
 
@@ -56,10 +58,10 @@ export function Home() {
           </button>
           <div className="separator">ou entre em uma sala</div>
           <form onSubmit={handleJoinRom}>
-            <input 
-            type="text" 
-            placeholder="Digite o código da sala" 
-            onChange={(event) => setroomcode(event.target.value)}
+            <input
+              type="text"
+              placeholder="Digite o código da sala"
+              onChange={(event) => setroomcode(event.target.value)}
             />
             <Buttom type="submit">Entrar</Buttom>
           </form>
